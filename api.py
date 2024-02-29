@@ -12,27 +12,69 @@ app = Flask(__name__)
 def chat():
     # Extract data from the request body
     data = request.json
-    user_id = data.get('userId')
-    chat_id = data.get('chatId')
+    userId = data.get('userId')
+    chatId = data.get('chatId')
     message = data.get('message')
     context = data.get('context')
 
     # Extract previous messages and user data from the context
     previous_messages = context.get('previous', [])
-    user_data = context.get('userData', {})
+    userData = context.get('userData', {})
 
     # Call my_func with the extracted data
-    response_text, date = run_chat(user_id, chat_id, message, previous_messages, user_data)
+    responseText, date = run_chat(userId, chatId, message, previous_messages, userData)
 
     # Prepare the response body
-    response_body = {
-        "response": response_text,
+    responseBody = {
+        "response": responseText,
         "date": date
     }
 
     # Return the response
-    return jsonify(response_body)
+    return jsonify(responseBody)
 
 
-def test_func(a, b, c, d, e):
-    return 'Hello, World!', "2022-01-01 00:00:00"
+@app.route('/generatequiz', methods=['POST'])
+def generatequiz():
+    # Extract data from the request body
+    data = request.json
+    userId = data.get('userId')
+    numQs = data.get('numberOfQuestions')
+    types = data.get('types')
+    topics = data.get('topics')
+
+    # Call my_func with the extracted data
+    questions, date = generatequiz_temp(userId, numQs, types, topics)
+
+    # Prepare the response body
+    responseBody = {
+        "questions": questions,
+        "date": date
+    }
+
+    # Return the response
+    return jsonify(responseBody)
+
+
+def generatequiz_temp(userId, numQs, types, topics):
+    return [{
+          "type": "TRUE_FALSE",
+          "question": "This is a question?",
+          "answers": ["True", "False"]
+        },
+        {
+          "type": "MULTIPLE_CHOICE",
+          "question": "What is an even number?",
+          "answers": ["1", "3", "7", "8"]
+        },
+        {
+          "type": "SHORT_ANSWER",
+          "question": "What is a question?",
+          "answers": None
+        },
+        {
+          "type": "CODING",
+          "question": "Write a function to print Hello World! to console.",
+          "answers": None
+        }
+      ], "2024-02-28T00:00:00Z"
