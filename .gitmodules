@@ -1,0 +1,3 @@
+[submodule "submodules/main_agent"]
+	path = submodules/main_agent
+	url = https://github.com/LAI-Learning-with-AI/main_agent
