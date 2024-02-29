@@ -1,5 +1,9 @@
 from flask import Flask, request, jsonify
 from .submodules.main_agent.main import run_chat
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
 
