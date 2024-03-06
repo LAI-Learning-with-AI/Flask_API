@@ -20,6 +20,7 @@ class Quiz(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.String, db.ForeignKey('users.id'))
     name = db.Column(db.String)
+    topics = db.Column(db.String)
     score = db.Column(db.Integer)
     created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
 
