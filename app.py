@@ -1,9 +1,10 @@
 from flask import Flask, request, jsonify
-from .submodules.main_agent.main import run_chat
 from dotenv import load_dotenv
 from .config import Config
 from .models import db
-from .submodules.main_agent.generate_quizzes import generate_quiz 
+from .main_agent.main import run_chat
+from .main_agent.generate_quizzes import generate_quiz 
+# add main_agent as submodule ex --> git submodule add "C:\Users\Joshua Lamb\Documents\Local Code\senior_project\main-agent" main_agent
 
 # Load environment variables from .env file
 load_dotenv()
@@ -20,7 +21,7 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
-@app.route('/chat', methods=['POST'])
+@app.route('/chat', methods=['GET'])
 def chat():
     # Extract data from the request body
     data = request.json
@@ -47,7 +48,7 @@ def chat():
     return jsonify(responseBody)
 
 
-@app.route('/generatequiz', methods=['POST'])
+@app.route('/generatequiz', methods=['GET'])
 def generatequiz():
     # Extract data from the request body
     data = request.json
