@@ -37,7 +37,7 @@ class Question(db.Model):
     question = db.Column(db.Text)
     topics = db.Column(db.String)
     choices = db.Column(db.String)
-    answers = db.Column(db.JSON)
+    answers = db.Column(db.String)
     score = db.Column(db.Integer)
 
     quiz = db.relationship("Quiz", backref="questions")
