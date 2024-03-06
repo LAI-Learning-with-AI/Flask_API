@@ -3,6 +3,7 @@ from .submodules.main_agent.main import run_chat
 from dotenv import load_dotenv
 from .config import Config
 from .models import db
+from .submodules.main_agent.generate_quizzes import generate_quiz 
 
 # Load environment variables from .env file
 load_dotenv()
@@ -35,6 +36,7 @@ def chat():
     # Call my_func with the extracted data
     responseText, date = run_chat(userId, chatId, message, previous_messages, userData)
 
+
     # Prepare the response body
     responseBody = {
         "response": responseText,
@@ -55,16 +57,17 @@ def generatequiz():
     topics = data.get('topics')
 
     # Call my_func with the extracted data
-    questions, date = generatequiz_temp(userId, numQs, types, topics)
+    # questions, date = generatequiz_temp(userId, numQs, types, topics)
+    body = generate_quiz(numQs, types, topics)
 
     # Prepare the response body
-    responseBody = {
-        "questions": questions,
-        "date": date
-    }
+    # responseBody = {
+    #     "questions": questions,
+    #     "date": date
+    # }
 
     # Return the response
-    return jsonify(responseBody)
+    return jsonify(body)
 
 
 def generatequiz_temp(userId, numQs, types, topics):
