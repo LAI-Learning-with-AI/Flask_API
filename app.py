@@ -52,6 +52,23 @@ def chat():
     # Return the response
     return jsonify(responseBody)
 
+# Route to get quizzes associated to a user
+@app.route('/quizzes', methods=['GET'])
+def get_quizzes():
+    # Extract data from the request body
+    data = request.json
+    user_id = data.get('userId')
+
+    # Get all the quizzes associated with user
+    quizzes = Quiz.query.filter(Quiz.user_id == user_id).all()
+
+    # Prepare the response body
+    formatted = []
+    for quiz in quizzes:
+      formatted.append(row2dict(quiz))
+
+    return jsonify(formatted), 200
+
 # Route to get quiz questions with input: USER_ID and QUIZ_ID
 @app.route('/quiz', methods=['GET'])
 def quiz():
@@ -74,7 +91,7 @@ def quiz():
     # Prepare the response body
     formatted = []
     for question in questions:
-      formatted.append(row2dict(question));
+      formatted.append(row2dict(question))
     
     responseBody = {
         "questions" : formatted,
