@@ -51,6 +51,41 @@ def generateResponse():
     # Return the response
     return jsonify(responseBody)
 
+# Route to get all chats associated to a user
+@app.route('/chats', methods=['GET'])
+def get_chats():
+    # Extract data from the request body
+    data = request.json
+    user_id = data.get('userId')
+
+    # Get all the quizzes associated with user
+    chats = Chat.query.filter(Chat.user_id == user_id).all()
+
+    # Prepare the response body
+    formatted = []
+    for chat in chats:
+      # Convert chat rows to a dictionary
+      details = row2dict(chat)
+
+      # Get messages associated to a chat
+      messages = Message.query.filter(Message.chat_id == chat.id).all()
+      
+      # Compile messages into an array
+      msgs = []
+      for message in messages:
+         msgs.append(message.message)
+
+      # Format response
+      formatted.append({
+         "chat_id": details['id'],
+         "title": details['name'],
+         "description": details['description'],
+         "chats": msgs
+      })
+
+    # Return the response
+    return jsonify(formatted), 200
+
 # Route to create a new chat for a user
 @app.route('/createChat', methods=['POST'])
 def createChat():
