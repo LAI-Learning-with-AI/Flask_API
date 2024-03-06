@@ -4,7 +4,6 @@ from .config import Config
 from .models import db, Quiz, Question, Chat, Message
 from .main_agent.main import run_chat
 from .main_agent.generate_quizzes import generate_quiz 
-# add main_agent as submodule ex --> git submodule add "C:\Users\Joshua Lamb\Documents\Local Code\senior_project\main-agent" main_agent
 
 # Load environment variables from .env file
 load_dotenv()
@@ -41,6 +40,15 @@ def generateResponse():
 
     # Call my_func with the extracted data
     responseText, date = run_chat(userId, chatId, message, previous_messages, userData)
+
+    # Create Chat ORM objects
+    question_message = Message(chat_id=chatId, message=message)
+    response_message = Message(chat_id=chatId, message=responseText)
+
+    # Commit to DB
+    db.session.add(question_message)
+    db.session.add(response_message)
+    db.session.commit()
 
     # Prepare the response body
     responseBody = {
