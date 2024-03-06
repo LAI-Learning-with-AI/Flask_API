@@ -21,6 +21,11 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
+# Code to serialize ORM objects
+## credit: https://stackoverflow.com/a/54069595
+def row2dict(row):
+    return {column.name: getattr(row, column.name) for column in row.__table__.columns}
+
 @app.route('/chat', methods=['GET'])
 def chat():
     # Extract data from the request body
@@ -47,8 +52,39 @@ def chat():
     # Return the response
     return jsonify(responseBody)
 
+# Route to get quiz questions with input: USER_ID and QUIZ_ID
+@app.route('/quiz', methods=['GET'])
+def quiz():
+    # Extract data from the request body
+    data = request.json
+    user_id = data.get('userId')
+    quiz_id = data.get('quizId')
 
-@app.route('/generatequiz', methods=['GET'])
+    quiz = Quiz.query.get(quiz_id)
+    # Check to see if quiz is in DB
+    if not quiz:
+        return jsonify({'error': 'Quiz not found'}), 404
+    # Check to see if quiz belongs to user
+    elif quiz.user_id != user_id:
+        return jsonify({'error': 'Unauthorized'}), 403  
+    
+    # Get all the questions for the quiz
+    questions = Question.query.filter(Question.quiz_id == quiz_id).all()
+
+    # Prepare the response body
+    formatted = []
+    for question in questions:
+      formatted.append(row2dict(question));
+    
+    responseBody = {
+        "questions" : formatted,
+        "date": quiz.created_at.isoformat()
+    }
+
+    # Return the response
+    return responseBody, 200
+
+@app.route('/generatequiz', methods=['POST'])
 def generatequiz():
     # Extract data from the request body
     data = request.json
