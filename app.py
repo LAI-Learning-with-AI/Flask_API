@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 from .config import Config
-from .models import db, Quiz, Question
+from .models import db, Quiz, Question, Chat, Message
 from .main_agent.main import run_chat
 from .main_agent.generate_quizzes import generate_quiz 
 # add main_agent as submodule ex --> git submodule add "C:\Users\Joshua Lamb\Documents\Local Code\senior_project\main-agent" main_agent
@@ -26,8 +26,8 @@ with app.app_context():
 def row2dict(row):
     return {column.name: getattr(row, column.name) for column in row.__table__.columns}
 
-@app.route('/chat', methods=['GET'])
-def chat():
+@app.route('/generateResponse', methods=['POST'])
+def generateResponse():
     # Extract data from the request body
     data = request.json
     userId = data.get('userId')
@@ -42,7 +42,6 @@ def chat():
     # Call my_func with the extracted data
     responseText, date = run_chat(userId, chatId, message, previous_messages, userData)
 
-
     # Prepare the response body
     responseBody = {
         "response": responseText,
@@ -51,6 +50,25 @@ def chat():
 
     # Return the response
     return jsonify(responseBody)
+
+# Route to create a new chat for a user
+@app.route('/createChat', methods=['POST'])
+def createChat():
+    # Extract data from the request body
+    data = request.json
+    user_id = data.get('userId')
+    name = data.get('name')
+    # description = data.get('description')
+
+    # Create Chat ORM object 
+    chat = Chat(user_id=user_id, name=name)
+
+    # Commit to DB
+    db.session.add(chat)
+    db.session.commit()
+
+    # Return the response
+    return jsonify({'chat_id': chat.id}), 200
 
 # Route to get quizzes associated to a user
 @app.route('/quizzes', methods=['GET'])
@@ -126,7 +144,6 @@ def generatequiz():
 
     # Return the response
     return jsonify({'quiz_id': quiz_id}), 200
-
 
 # Function to commit quizzes to database
 def store_quiz_in_db(user_id, name, topics, questions):
