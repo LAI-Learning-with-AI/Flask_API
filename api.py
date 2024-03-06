@@ -1,12 +1,23 @@
 from flask import Flask, request, jsonify
 from .submodules.main_agent.main import run_chat
 from dotenv import load_dotenv
+from .config import Config
+from .models import db
 
 # Load environment variables from .env file
 load_dotenv()
 
 app = Flask(__name__)
 
+# Load DB config from config.py
+app.config.from_object(Config)
+
+# Initialize DB
+db.init_app(app)
+
+# Create tables from models.py if they dont exist in database
+with app.app_context():
+    db.create_all()
 
 @app.route('/chat', methods=['POST'])
 def chat():
