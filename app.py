@@ -60,7 +60,7 @@ def generateResponse():
     return jsonify(responseBody)
 
 # Route to get all chats associated to a user
-@app.route('/chats', methods=['GET'])
+@app.route('/chats', methods=['POST'])
 def get_chats():
     # Extract data from the request body
     data = request.json
@@ -114,7 +114,7 @@ def createChat():
     return jsonify({'chat_id': chat.id}), 200
 
 # Route to get quizzes associated to a user
-@app.route('/quizzes', methods=['GET'])
+@app.route('/quizzes', methods=['POST'])
 def get_quizzes():
     # Extract data from the request body
     data = request.json
@@ -131,7 +131,7 @@ def get_quizzes():
     return jsonify(formatted), 200
 
 # Route to get quiz questions with input: USER_ID and QUIZ_ID
-@app.route('/quiz', methods=['GET'])
+@app.route('/quiz', methods=['POST'])
 def quiz():
     # Extract data from the request body
     data = request.json
