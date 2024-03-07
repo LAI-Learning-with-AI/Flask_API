@@ -4,11 +4,13 @@ from .config import Config
 from .models import db, Quiz, Question, Chat, Message
 from .main_agent.main import run_chat
 from .main_agent.generate_quizzes import generate_quiz 
+from flask_cors import CORS
 
 # Load environment variables from .env file
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app)
 
 # Load DB config from config.py
 app.config.from_object(Config)
