@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 from .config import Config
-from .models import db, Quiz, Question, Chat, Message
+from .models import db, Quiz, Question, Chat, Message, User
 from .main_agent.main import run_chat
 from .main_agent.generate_quizzes import generate_quiz 
 from flask_cors import CORS
@@ -61,6 +61,29 @@ def generateResponse():
     # Return the response
     return jsonify(responseBody)
 
+# Route to create a new user
+@app.route('/createUser', methods=['POST'])
+def create_user():
+    # Extract data from the rqeuest body
+    data = request.get_json()
+    userId = data.get('userId')
+    email = data.get('email')
+    name = data.get('name')
+    
+    # Create user ORM object
+    new_user = User(
+        id=userId,
+        email=email,
+        name=name
+    )
+
+    # Commit to DB
+    db.session.add(new_user)
+    db.session.commit()
+    
+    # Return response
+    return jsonify({'message': 'User created successfully'}), 201
+
 # Route to get all chats associated to a user
 @app.route('/chats', methods=['POST'])
 def get_chats():
@@ -90,6 +113,7 @@ def get_chats():
          "chat_id": details['id'],
          "title": details['name'],
          "description": details['description'],
+         "created_at": details['created_at'],
          "chats": msgs
       })
 
@@ -113,7 +137,7 @@ def createChat():
     db.session.commit()
 
     # Return the response
-    return jsonify({'chat_id': chat.id}), 200
+    return jsonify({'chat_id': chat.id}), 201
 
 # Route to get quizzes associated to a user
 @app.route('/quizzes', methods=['POST'])
@@ -188,7 +212,7 @@ def generatequiz():
     quiz_id = store_quiz_in_db(userId, name, topics, body)
 
     # Return the response
-    return jsonify({'quiz_id': quiz_id}), 200
+    return jsonify({'quiz_id': quiz_id}), 201
 
 # Function to commit quizzes to database
 def store_quiz_in_db(user_id, name, topics, questions):
