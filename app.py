@@ -3,7 +3,8 @@ from dotenv import load_dotenv
 from .config import Config
 from .models import db, Quiz, Question, Chat, Message, User
 from .main_agent.main import run_chat
-from .main_agent.generate_quizzes import generate_quiz 
+from .main_agent.generate_quizzes import generate_quiz
+from .main_agent.get_similar import get_similar
 from flask_cors import CORS
 
 # Load environment variables from .env file
@@ -237,3 +238,15 @@ def store_quiz_in_db(user_id, name, topics, questions):
     # Return final quiz for frontend redirect
     return quiz.id
 
+@app.route('/getsimilar', methods=['POST'])
+def getsimilar():
+    # Extract data from the request body
+    data = request.json
+    topics = data.get('topics')
+    max_resources_per_topic = data.get('max_resources_per_topic')
+
+    # Call my_func with the extracted data
+    similar_topics = get_similar(topics, max_resources_per_topic)
+
+    # Return the response
+    return jsonify({'resources': similar_topics}), 200
