@@ -1,9 +1,10 @@
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 from .config import Config
-from .models import db, Quiz, Question, Chat, Message
+from .models import db, Quiz, Question, Chat, Message, User
 from .main_agent.main import run_chat
-from .main_agent.generate_quizzes import generate_quiz 
+from .main_agent.generate_quizzes import generate_quiz
+from .main_agent.get_similar import get_similar
 from flask_cors import CORS
 
 # Load environment variables from .env file
@@ -61,6 +62,29 @@ def generateResponse():
     # Return the response
     return jsonify(responseBody)
 
+# Route to create a new user
+@app.route('/createUser', methods=['POST'])
+def create_user():
+    # Extract data from the rqeuest body
+    data = request.get_json()
+    userId = data.get('userId')
+    email = data.get('email')
+    name = data.get('name')
+    
+    # Create user ORM object
+    new_user = User(
+        id=userId,
+        email=email,
+        name=name
+    )
+
+    # Commit to DB
+    db.session.add(new_user)
+    db.session.commit()
+    
+    # Return response
+    return jsonify({'message': 'User created successfully'}), 201
+
 # Route to get all chats associated to a user
 @app.route('/chats', methods=['POST'])
 def get_chats():
@@ -90,6 +114,7 @@ def get_chats():
          "chat_id": details['id'],
          "title": details['name'],
          "description": details['description'],
+         "created_at": details['created_at'],
          "chats": msgs
       })
 
@@ -113,7 +138,7 @@ def createChat():
     db.session.commit()
 
     # Return the response
-    return jsonify({'chat_id': chat.id}), 200
+    return jsonify({'chat_id': chat.id}), 201
 
 # Route to get quizzes associated to a user
 @app.route('/quizzes', methods=['POST'])
@@ -176,7 +201,7 @@ def generatequiz():
 
     # Call my_func with the extracted data
     # questions, date = generatequiz_temp(userId, numQs, types, topics)
-    body = generate_quiz(numQs, types, topics, False)
+    body = generate_mc_quiz(numQs, types, topics)
 
     # Prepare the response body
     # responseBody = {
@@ -188,7 +213,7 @@ def generatequiz():
     quiz_id = store_quiz_in_db(userId, name, topics, body)
 
     # Return the response
-    return jsonify({'quiz_id': quiz_id}), 200
+    return jsonify({'quiz_id': quiz_id}), 201
 
 # Function to commit quizzes to database
 def store_quiz_in_db(user_id, name, topics, questions):
@@ -213,3 +238,15 @@ def store_quiz_in_db(user_id, name, topics, questions):
     # Return final quiz for frontend redirect
     return quiz.id
 
+@app.route('/getsimilar', methods=['POST'])
+def getsimilar():
+    # Extract data from the request body
+    data = request.json
+    topics = data.get('topics')
+    max_resources_per_topic = data.get('max_resources_per_topic')
+
+    # Call my_func with the extracted data
+    similar_topics = get_similar(topics, max_resources_per_topic)
+
+    # Return the response
+    return jsonify({'resources': similar_topics}), 200
