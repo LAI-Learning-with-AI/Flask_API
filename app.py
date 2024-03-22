@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from .config import Config
 from .models import db, Quiz, Question, Chat, Message
 from .main_agent.main import run_chat
-from .main_agent.generate_quizzes import generate_mc_quiz 
+from .main_agent.generate_quizzes import generate_quiz 
 from flask_cors import CORS
 
 # Load environment variables from .env file
@@ -176,7 +176,7 @@ def generatequiz():
 
     # Call my_func with the extracted data
     # questions, date = generatequiz_temp(userId, numQs, types, topics)
-    body = generate_mc_quiz(numQs, types, topics)
+    body = generate_quiz(numQs, types, topics, False)
 
     # Prepare the response body
     # responseBody = {
