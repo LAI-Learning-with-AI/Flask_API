@@ -201,7 +201,7 @@ def generatequiz():
 
     # Call my_func with the extracted data
     # questions, date = generatequiz_temp(userId, numQs, types, topics)
-    body = generate_quiz(numQs, types, topics)
+    body = generate_mc_quiz(numQs, types, topics)
 
     # Prepare the response body
     # responseBody = {
