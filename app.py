@@ -258,6 +258,51 @@ def generatequiz():
     # Return the response
     return jsonify({'quiz_id': quiz_id}), 201
 
+@app.route('/gradequiz', methods=['GET'])
+def gradequiz():
+    '''Takes MC questions correct & grades FRQs to get final quiz grade. Expects input JSON body of format:
+    {
+        "userID": 1234,
+        "quizID": 5678,
+        "numMC": 2,
+        "numMCCorrect": 1,
+        "questions": [
+            {
+                "questionID": 4000,
+                "question": "This is a question asked?",
+                "answer": "This is the user's answer."}
+            },
+            {
+                "questionID": 4001,
+                "question": "This is another question asked?",
+                "answer": "This is the user's answer."}
+            }
+        ]   
+    }
+    '''
+
+    # extract data from the request body
+    data = request.json
+    user_id = data.get('userID')
+    quiz_id = data.get('quizID')
+    num_mc = data.get('numMC')
+    num_mc_correct = data.get('numMCCorrect')
+    questions = data.get('questions')
+
+    total_questions = num_mc + len(questions)
+
+    # grade FRQs
+    # code
+
+    # combine FRQ grade w/ MC grade to get a total grade
+    # code
+
+    # store scores in db
+    # code
+
+    # return response
+    return jsonify({'quiz_id': quiz_id}), 200
+
 # Function to commit quizzes to database
 def store_quiz_in_db(user_id, name, topics, questions):
     # Create quiz ORM object 
