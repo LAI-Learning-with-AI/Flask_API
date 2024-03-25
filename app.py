@@ -189,6 +189,45 @@ def quiz():
     # Return the response
     return responseBody, 200
 
+# Route to import quiz / duplicate quiz
+@app.route('/importQuiz', methods=['POST'])
+def import_quiz():
+    # Extract data from the request body
+    data = request.json
+    userId = data.get('userId')
+    quizId = data.get('quizId')
+
+    # Get quiz to be duplicated
+    quiz = Quiz.query.get(quizId)
+    questions = Question.query.filter(Question.quiz_id == quizId).all()
+
+    # Check to see if quiz is in DB
+    if not quiz:
+        return jsonify({'error': 'Quiz not found'}), 404
+    
+    # Define ORM object for new Quiz
+    newQuiz = Quiz(user_id=userId, name=quiz.name, topics=quiz.topics)
+
+    # Add Quiz to DB
+    db.session.add(newQuiz)
+    db.session.commit()
+
+    # Add questions to DB
+    for question in questions: 
+        # Create ORM object for Question
+        newQuestion = Question(quiz_id=newQuiz.id, type=question.type, question=question.question,
+                               topics=question.topics, choices=question.choices,
+                               answers=question.answers)
+        
+        # Add to DB
+        db.session.add(newQuestion)
+
+    # Commit to DB
+    db.session.commit()
+
+    # Return the response
+    return jsonify({'quiz_id': newQuiz.id}), 201
+
 @app.route('/generatequiz', methods=['POST'])
 def generatequiz():
     # Extract data from the request body
