@@ -189,6 +189,45 @@ def quiz():
     # Return the response
     return responseBody, 200
 
+# Route to import quiz / duplicate quiz
+@app.route('/importQuiz', methods=['POST'])
+def import_quiz():
+    # Extract data from the request body
+    data = request.json
+    userId = data.get('userId')
+    quizId = data.get('quizId')
+
+    # Get quiz to be duplicated
+    quiz = Quiz.query.get(quizId)
+    questions = Question.query.filter(Question.quiz_id == quizId).all()
+
+    # Check to see if quiz is in DB
+    if not quiz:
+        return jsonify({'error': 'Quiz not found'}), 404
+    
+    # Define ORM object for new Quiz
+    newQuiz = Quiz(user_id=userId, name=quiz.name, topics=quiz.topics)
+
+    # Add Quiz to DB
+    db.session.add(newQuiz)
+    db.session.commit()
+
+    # Add questions to DB
+    for question in questions: 
+        # Create ORM object for Question
+        newQuestion = Question(quiz_id=newQuiz.id, type=question.type, question=question.question,
+                               topics=question.topics, choices=question.choices,
+                               answers=question.answers)
+        
+        # Add to DB
+        db.session.add(newQuestion)
+
+    # Commit to DB
+    db.session.commit()
+
+    # Return the response
+    return jsonify({'quiz_id': newQuiz.id}), 201
+
 @app.route('/generatequiz', methods=['POST'])
 def generatequiz():
     # Extract data from the request body
@@ -201,7 +240,11 @@ def generatequiz():
 
     # Call my_func with the extracted data
     # questions, date = generatequiz_temp(userId, numQs, types, topics)
-    body = generate_mc_quiz(numQs, types, topics)
+    body = generate_quiz(numQs, types, topics)
+
+    # return 400 for failed quiz generation
+    if body == False:
+        return jsonify({'error': 'Failed to generate quiz'}), 400
 
     # Prepare the response body
     # responseBody = {
@@ -214,6 +257,51 @@ def generatequiz():
 
     # Return the response
     return jsonify({'quiz_id': quiz_id}), 201
+
+@app.route('/gradequiz', methods=['GET'])
+def gradequiz():
+    '''Takes MC questions correct & grades FRQs to get final quiz grade. Expects input JSON body of format:
+    {
+        "userID": 1234,
+        "quizID": 5678,
+        "numMC": 2,
+        "numMCCorrect": 1,
+        "questions": [
+            {
+                "questionID": 4000,
+                "question": "This is a question asked?",
+                "answer": "This is the user's answer."}
+            },
+            {
+                "questionID": 4001,
+                "question": "This is another question asked?",
+                "answer": "This is the user's answer."}
+            }
+        ]   
+    }
+    '''
+
+    # extract data from the request body
+    data = request.json
+    user_id = data.get('userID')
+    quiz_id = data.get('quizID')
+    num_mc = data.get('numMC')
+    num_mc_correct = data.get('numMCCorrect')
+    questions = data.get('questions')
+
+    total_questions = num_mc + len(questions)
+
+    # grade FRQs
+    # code
+
+    # combine FRQ grade w/ MC grade to get a total grade
+    # code
+
+    # store scores in db
+    # code
+
+    # return response
+    return jsonify({'quiz_id': quiz_id}), 200
 
 # Function to commit quizzes to database
 def store_quiz_in_db(user_id, name, topics, questions):
