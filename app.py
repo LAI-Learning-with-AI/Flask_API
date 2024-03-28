@@ -302,7 +302,7 @@ def gradequiz():
     # return response
     return jsonify({'quiz_id': quiz_id}), 200
 
-def store_scores_in_db(user_id, quiz_id, final_grade, frq_scores):
+def _store_scores_in_db(user_id, quiz_id, final_grade, frq_scores):
     # TODO:
     return
 
