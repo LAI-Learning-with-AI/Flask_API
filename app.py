@@ -331,6 +331,18 @@ def _store_quiz_in_db(user_id, name, topics, questions):
 
 @app.route('/getsimilar', methods=['POST'])
 def getsimilar():
+    """
+    A function that handles the '/getsimilar' route with the 'POST' method.
+
+    Parameters:
+    - None
+    - The request contains a list of 'topics' in json, which is a list of strings.
+
+    Returns:
+    - A JSON response containing the similar topics and their corresponding resources.
+    - A status code of 200 if the request was successful.
+    - Ex: {"resources": {"topic1": ["resource1", "resource2"]}, {"topic2": ["resource3"]}, ...}
+    """
     # Extract data from the request body
     data = request.json
     topics = data.get('topics')
