@@ -26,7 +26,7 @@ with app.app_context():
 
 # Code to serialize ORM objects
 ## credit: https://stackoverflow.com/a/54069595
-def row2dict(row):
+def _row2dict(row):
     return {column.name: getattr(row, column.name) for column in row.__table__.columns}
 
 @app.route('/generateResponse', methods=['POST'])
@@ -100,7 +100,7 @@ def get_chats():
     formatted = []
     for chat in chats:
       # Convert chat rows to a dictionary
-      details = row2dict(chat)
+      details = _row2dict(chat)
 
       # Get messages associated to a chat
       messages = Message.query.filter(Message.chat_id == chat.id).all()
@@ -154,7 +154,7 @@ def get_quizzes():
     # Prepare the response body
     formatted = []
     for quiz in quizzes:
-      formatted.append(row2dict(quiz))
+      formatted.append(_row2dict(quiz))
 
     return jsonify(formatted), 200
 
@@ -180,7 +180,7 @@ def quiz():
     # Prepare the response body
     formatted = []
     for question in questions:
-      formatted.append(row2dict(question))
+      formatted.append(_row2dict(question))
     
     responseBody = {
         "questions" : formatted,
