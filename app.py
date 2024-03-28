@@ -4,6 +4,7 @@ from .config import Config
 from .models import db, Quiz, Question, Chat, Message, User
 from .main_agent.main import run_chat
 from .main_agent.generate_quizzes import generate_quiz
+from .main_agent.generate_quizzes import grade_quiz
 from .main_agent.get_similar import get_similar
 from flask_cors import CORS
 
@@ -253,29 +254,32 @@ def generatequiz():
     # }
 
     # Commit new quiz to database
-    quiz_id = store_quiz_in_db(userId, name, topics, body)
+    quiz_id = _store_quiz_in_db(userId, name, topics, body)
 
     # Return the response
     return jsonify({'quiz_id': quiz_id}), 201
 
 @app.route('/gradequiz', methods=['GET'])
 def gradequiz():
-    '''Takes MC questions correct & grades FRQs to get final quiz grade. Expects input JSON body of format:
+    '''Takes info on quiz MC questions correct & FRQs, grades FRQs, computes a final quiz grade, and stores relevant grade info
+    in the database. Expects input JSON body of the following format:
     {
         "userID": 1234,
         "quizID": 5678,
-        "numMC": 2,
-        "numMCCorrect": 1,
         "questions": [
             {
                 "questionID": 4000,
                 "question": "This is a question asked?",
-                "answer": "This is the user's answer."}
+                "question_type": "SHORT_ANSWER",
+                "answer": "This is the ground-truth answer.",
+                "user_answer": "This is the user's answer.",
             },
             {
                 "questionID": 4001,
                 "question": "This is another question asked?",
-                "answer": "This is the user's answer."}
+                "question_type": "MULTIPLE_CHOICE",
+                "answer": "This is the ground-truth answer.",
+                "user_answer": "This is the ground-truth answer."}
             }
         ]   
     }
@@ -289,22 +293,21 @@ def gradequiz():
     num_mc_correct = data.get('numMCCorrect')
     questions = data.get('questions')
 
-    total_questions = num_mc + len(questions)
-
-    # grade FRQs
-    # code
-
-    # combine FRQ grade w/ MC grade to get a total grade
-    # code
+    # grade quiz
+    final_score, question_scores = grade_quiz(questions)
 
     # store scores in db
-    # code
+    # TODO:
 
     # return response
     return jsonify({'quiz_id': quiz_id}), 200
 
+def store_scores_in_db(user_id, quiz_id, final_grade, frq_scores):
+    # TODO:
+    return
+
 # Function to commit quizzes to database
-def store_quiz_in_db(user_id, name, topics, questions):
+def _store_quiz_in_db(user_id, name, topics, questions):
     # Create quiz ORM object 
     quiz = Quiz(user_id=user_id, name=name, topics=topics)
 
