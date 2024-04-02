@@ -28,6 +28,21 @@ with app.app_context():
 def row2dict(row):
     return {column.name: getattr(row, column.name) for column in row.__table__.columns}
 
+@app.route('/groupQuizResults', methods=['POST'])
+def groupQuizResults():
+    # Extract data from the request body
+    data = request.json
+    userId = data.get('userId')
+    quizId = data.get('quizId')
+
+    # Print out all questions from all quizzes
+    all_questions = Question.query.filter(Question.quiz_id == quizId).all()
+    questions_formatted = [q.id for q in all_questions]
+    print(questions_formatted)
+
+    # Return the response
+    return 404
+
 @app.route('/generateResponse', methods=['POST'])
 def generateResponse():
     # Extract data from the request body
@@ -350,3 +365,8 @@ def getsimilar():
 
     # Return the response
     return jsonify({'resources': similar_topics}), 200
+
+
+if __name__ == '__main__':
+    # run app.py not api.py
+    app.run(debug=True)
