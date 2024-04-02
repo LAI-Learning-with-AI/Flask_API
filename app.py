@@ -33,10 +33,13 @@ def groupQuizResults():
     # Extract data from the request body
     data = request.json
     userId = data.get('userId')
-    quizId = data.get('quizId')
+    all_user_quizzes = Quiz.query.filter(User.id == userId).all()
+    all_user_quiz_ids = [q.id for q in all_user_quizzes]
 
-    # Print out all questions from all quizzes
-    all_questions = Question.query.filter(Question.quiz_id == quizId).all()
+    all_questions = []
+    for quizId in all_user_quiz_ids:
+        all_questions += Question.query.filter(Question.quiz_id == quizId).all()
+
     questions_formatted = [q.id for q in all_questions]
     print(questions_formatted)
 
