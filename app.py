@@ -30,21 +30,66 @@ def row2dict(row):
 
 @app.route('/groupQuizResults', methods=['POST'])
 def groupQuizResults():
+    group_frequency_cutoffs = [5, 10, 20]
+    mastery_score_cutoff = 0.8
+
     # Extract data from the request body
     data = request.json
     userId = data.get('userId')
-    all_user_quizzes = Quiz.query.filter(User.id == userId).all()
-    all_user_quiz_ids = [q.id for q in all_user_quizzes]
+    all_user_quiz_ids = [q.id for q in Quiz.query.filter(User.id == userId).all()]
 
     all_questions = []
+    num_qs_in_quiz = {}
     for quizId in all_user_quiz_ids:
+        before = len(all_questions)
         all_questions += Question.query.filter(Question.quiz_id == quizId).all()
+        added = len(all_questions) - before
+        num_qs_in_quiz[quizId] = added
 
-    questions_formatted = [q.id for q in all_questions]
-    print(questions_formatted)
+
+    # questions_formatted = [f"{q.quiz_id}-{q.id}: {q.type}, {q.topics}, {q.question}, {q.score}" for q in all_questions]
+    # for q in questions_formatted:
+    #     print(q)
+
+    # Normalize question scores by number of questions 0-1.0, assuming 100pts per quiz and all quiz pts are equal
+    normalized_questions = []
+    for q in all_questions:
+        pts_per_q = 100 / num_qs_in_quiz[q.quiz_id]
+        q.nScore = q.score / pts_per_q
+        normalized_questions.append(q)
+
+    # Assuming every question has only one topic, every quiz is worth 100pts, and every question is worth 100/#questions
+    scores = {}
+    for q in normalized_questions:
+        if q.topics not in scores:
+            scores[q.topics] = []
+        scores[q.topics].append(q.nScore)
+
+    results = {}
+    for k, v in scores.items():
+        results[k] = (len(v), sum(v)/len(v))
+
+    response = []
+    for k, v in results.items():
+        mastery = ""
+        if v[0] < group_frequency_cutoffs[0]:
+            mastery = "learning"
+        elif v[0] < group_frequency_cutoffs[1] or v[1] < mastery_score_cutoff:
+            mastery = "struggling"
+        elif v[1] >= mastery_score_cutoff:
+            mastery = "mastered"
+        else:
+            mastery = "undermined"
+
+        response += [{
+            "topic": k,
+            "frequency": v[0],
+            "score": v[1],
+            "mastery": mastery
+        }]
 
     # Return the response
-    return 404
+    return response, 200
 
 @app.route('/generateResponse', methods=['POST'])
 def generateResponse():
