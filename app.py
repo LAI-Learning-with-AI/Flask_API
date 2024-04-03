@@ -293,18 +293,33 @@ def gradequiz():
     num_mc_correct = data.get('numMCCorrect')
     questions = data.get('questions')
 
+    question_ids = []
+    for question in questions:
+        question_ids.append(question['questionID'])
+
     # grade quiz
     final_score, question_scores = grade_quiz(questions)
 
     # store scores in db
-    # TODO:
+    _store_scores_in_db(user_id, quiz_id, final_score, question_ids, question_scores)
 
     # return response
     return jsonify({'quiz_id': quiz_id}), 200
 
-def _store_scores_in_db(user_id, quiz_id, final_grade, frq_scores):
-    # TODO:
-    return
+def _store_scores_in_db(user_id, quiz_id, final_grade, question_ids, question_scores):
+    '''Stores quiz scores in the database.'''
+
+    # set final grade
+    quiz = Quiz.query.get(quiz_id)
+    quiz.grade = final_grade 
+
+    # set question scores
+    for question_id, score in question_scores.items():
+        question = Question.query.get(question_id)
+        question.score = score
+
+    # commit to db
+    db.session.commit()
 
 # Function to commit quizzes to database
 def _store_quiz_in_db(user_id, name, topics, questions):
