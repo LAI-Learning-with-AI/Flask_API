@@ -30,7 +30,7 @@ def row2dict(row):
 
 @app.route('/groupQuizResults', methods=['POST'])
 def groupQuizResults():
-    group_frequency_cutoffs = [5, 10, 20]
+    group_frequency_cutoffs = [5, 10]
     mastery_score_cutoff = 0.8
 
     # Extract data from the request body
@@ -59,6 +59,7 @@ def groupQuizResults():
         normalized_questions.append(q)
 
     # Assuming every question has only one topic, every quiz is worth 100pts, and every question is worth 100/#questions
+    # TODO: These will be normalized already, 0-1.0
     scores = {}
     for q in normalized_questions:
         if q.topics not in scores:
@@ -397,6 +398,9 @@ def getsimilar():
     Parameters:
     - None
     - The request contains a list of 'topics' in json, which is a list of strings.
+    - The request contains a 'max_resources_per_topic' in json, which is an integer.
+    - Ex: {"topics": ""}
+    - Ex: {"max_resources_per_topic": 5}
 
     Returns:
     - A JSON response containing the similar topics and their corresponding resources.
