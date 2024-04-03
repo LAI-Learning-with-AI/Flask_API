@@ -39,7 +39,7 @@ class Question(db.Model):
     choices = db.Column(db.String)
     answers = db.Column(db.String)
     score = db.Column(db.Numeric)
-
+    
     quiz = db.relationship("Quiz", backref="questions")
 
 # DB Table Schema for Chats
