@@ -29,6 +29,7 @@ with app.app_context():
 def _row2dict(row):
     return {column.name: getattr(row, column.name) for column in row.__table__.columns}
 
+
 @app.route('/generateResponse', methods=['POST'])
 def generateResponse():
     # Extract data from the request body
@@ -352,6 +353,9 @@ def getsimilar():
     Parameters:
     - None
     - The request contains a list of 'topics' in json, which is a list of strings.
+    - The request contains a 'max_resources_per_topic' in json, which is an integer.
+    - Ex: {"topics": ""}
+    - Ex: {"max_resources_per_topic": 5}
 
     Returns:
     - A JSON response containing the similar topics and their corresponding resources.
@@ -368,3 +372,58 @@ def getsimilar():
 
     # Return the response
     return jsonify({'resources': similar_topics}), 200
+
+
+@app.route('/groupQuizResults', methods=['POST'])
+def groupQuizResults():
+    group_frequency_cutoff = 10
+    mastery_score_cutoff = 0.8
+
+    # Extract data from the request body
+    data = request.json
+    userId = data.get('userId')
+    all_user_quiz_ids = [q.id for q in Quiz.query.filter(User.id == userId).all()]
+
+    all_questions = []
+    for quizId in all_user_quiz_ids:
+        all_questions += Question.query.filter(Question.quiz_id == quizId).all()
+
+    # Assuming every question has only one topic
+    scores = {}
+    for q in all_questions:
+        if q.score is None:
+            continue
+        if q.topics not in scores:
+            scores[q.topics] = []
+        scores[q.topics].append(q.score)
+
+    results = {}
+    for k, v in scores.items():
+        results[k] = (len(v), sum(v)/len(v))
+
+    response = []
+    for k, v in results.items():
+        mastery = ""
+        if v[0] < group_frequency_cutoff:
+            mastery = "learning"
+        elif v[1] < mastery_score_cutoff:
+            mastery = "struggling"
+        elif v[1] >= mastery_score_cutoff:
+            mastery = "mastered"
+        else:
+            mastery = "undermined"
+
+        response += [{
+            "topic": k,
+            "frequency": v[0],
+            "score": v[1],
+            "mastery": mastery
+        }]
+
+    # Return the response
+    return response, 200
+
+
+if __name__ == '__main__':
+    # run app.py not api.py
+    app.run(debug=True)
