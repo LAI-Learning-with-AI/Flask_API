@@ -4,6 +4,7 @@ from .config import Config
 from .models import db, Quiz, Question, Chat, Message, User
 from .main_agent.main import run_chat
 from .main_agent.generate_quizzes import generate_quiz
+from .main_agent.generate_quizzes import grade_quiz
 from .main_agent.get_similar import get_similar
 from flask_cors import CORS
 
@@ -25,7 +26,7 @@ with app.app_context():
 
 # Code to serialize ORM objects
 ## credit: https://stackoverflow.com/a/54069595
-def row2dict(row):
+def _row2dict(row):
     return {column.name: getattr(row, column.name) for column in row.__table__.columns}
 
 
@@ -100,7 +101,7 @@ def get_chats():
     formatted = []
     for chat in chats:
       # Convert chat rows to a dictionary
-      details = row2dict(chat)
+      details = _row2dict(chat)
 
       # Get messages associated to a chat
       messages = Message.query.filter(Message.chat_id == chat.id).all()
@@ -154,7 +155,7 @@ def get_quizzes():
     # Prepare the response body
     formatted = []
     for quiz in quizzes:
-      formatted.append(row2dict(quiz))
+      formatted.append(_row2dict(quiz))
 
     return jsonify(formatted), 200
 
@@ -180,7 +181,7 @@ def quiz():
     # Prepare the response body
     formatted = []
     for question in questions:
-      formatted.append(row2dict(question))
+      formatted.append(_row2dict(question))
     
     responseBody = {
         "questions" : formatted,
@@ -254,29 +255,32 @@ def generatequiz():
     # }
 
     # Commit new quiz to database
-    quiz_id = store_quiz_in_db(userId, name, topics, body)
+    quiz_id = _store_quiz_in_db(userId, name, topics, body)
 
     # Return the response
     return jsonify({'quiz_id': quiz_id}), 201
 
 @app.route('/gradequiz', methods=['GET'])
 def gradequiz():
-    '''Takes MC questions correct & grades FRQs to get final quiz grade. Expects input JSON body of format:
+    '''Takes info on quiz MC questions correct & FRQs, grades FRQs, computes a final quiz grade, and stores relevant grade info
+    in the database. Expects input JSON body of the following format:
     {
         "userID": 1234,
         "quizID": 5678,
-        "numMC": 2,
-        "numMCCorrect": 1,
         "questions": [
             {
                 "questionID": 4000,
                 "question": "This is a question asked?",
-                "answer": "This is the user's answer."}
+                "question_type": "SHORT_ANSWER",
+                "answer": "This is the ground-truth answer.",
+                "user_answer": "This is the user's answer.",
             },
             {
                 "questionID": 4001,
                 "question": "This is another question asked?",
-                "answer": "This is the user's answer."}
+                "question_type": "MULTIPLE_CHOICE",
+                "answer": "This is the ground-truth answer.",
+                "user_answer": "This is the ground-truth answer."}
             }
         ]   
     }
@@ -290,22 +294,36 @@ def gradequiz():
     num_mc_correct = data.get('numMCCorrect')
     questions = data.get('questions')
 
-    total_questions = num_mc + len(questions)
+    question_ids = []
+    for question in questions:
+        question_ids.append(question['questionID'])
 
-    # grade FRQs
-    # code
-
-    # combine FRQ grade w/ MC grade to get a total grade
-    # code
+    # grade quiz
+    final_score, question_scores = grade_quiz(questions)
 
     # store scores in db
-    # code
+    _store_scores_in_db(user_id, quiz_id, final_score, question_ids, question_scores)
 
     # return response
     return jsonify({'quiz_id': quiz_id}), 200
 
+def _store_scores_in_db(user_id, quiz_id, final_grade, question_ids, question_scores):
+    '''Stores quiz scores in the database.'''
+
+    # set final grade
+    quiz = Quiz.query.get(quiz_id)
+    quiz.grade = final_grade 
+
+    # set question scores
+    for question_id, score in question_scores.items():
+        question = Question.query.get(question_id)
+        question.score = score
+
+    # commit to db
+    db.session.commit()
+
 # Function to commit quizzes to database
-def store_quiz_in_db(user_id, name, topics, questions):
+def _store_quiz_in_db(user_id, name, topics, questions):
     # Create quiz ORM object 
     quiz = Quiz(user_id=user_id, name=name, topics=topics)
 

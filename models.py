@@ -21,7 +21,7 @@ class Quiz(db.Model):
     user_id = db.Column(db.String, db.ForeignKey('users.id'))
     name = db.Column(db.String)
     topics = db.Column(db.String)
-    score = db.Column(db.Integer)
+    score = db.Column(db.Numeric)
     created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
 
     user = db.relationship("User", backref="quizzes")
@@ -38,8 +38,8 @@ class Question(db.Model):
     topics = db.Column(db.String)
     choices = db.Column(db.String)
     answers = db.Column(db.String)
-    score = db.Column(db.Integer)
-
+    score = db.Column(db.Numeric)
+    
     quiz = db.relationship("Quiz", backref="questions")
 
 # DB Table Schema for Chats
