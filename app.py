@@ -358,7 +358,7 @@ def getsimilar():
 
 @app.route('/groupQuizResults', methods=['POST'])
 def groupQuizResults():
-    group_frequency_cutoffs = [5, 10]
+    group_frequency_cutoff = 10
     mastery_score_cutoff = 0.8
 
     # Extract data from the request body
@@ -386,9 +386,9 @@ def groupQuizResults():
     response = []
     for k, v in results.items():
         mastery = ""
-        if v[0] < group_frequency_cutoffs[0]:
+        if v[0] < group_frequency_cutoff:
             mastery = "learning"
-        elif v[0] < group_frequency_cutoffs[1] or v[1] < mastery_score_cutoff:
+        elif v[1] < mastery_score_cutoff:
             mastery = "struggling"
         elif v[1] >= mastery_score_cutoff:
             mastery = "mastered"
