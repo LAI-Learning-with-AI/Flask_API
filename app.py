@@ -367,16 +367,14 @@ def groupQuizResults():
     all_user_quiz_ids = [q.id for q in Quiz.query.filter(User.id == userId).all()]
 
     all_questions = []
-    num_qs_in_quiz = {}
     for quizId in all_user_quiz_ids:
-        before = len(all_questions)
         all_questions += Question.query.filter(Question.quiz_id == quizId).all()
-        added = len(all_questions) - before
-        num_qs_in_quiz[quizId] = added
 
     # Assuming every question has only one topic
     scores = {}
     for q in all_questions:
+        if q.score is None:
+            continue
         if q.topics not in scores:
             scores[q.topics] = []
         scores[q.topics].append(q.score)
