@@ -134,4 +134,4 @@ def post_explanation():
     db.session.commit()
 
     # Return response.
-    return jsonify({'message': 'Explanation Created'}), 201
+    return jsonify({'topic': topic_id, 'explanation': response}), 201
