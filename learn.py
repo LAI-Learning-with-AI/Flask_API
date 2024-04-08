@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
-from .models import Quiz, User, Question
+from .main_agent.main import run_chat
+from .models import db, Quiz, User, Question, Explanations
 from .main_agent.get_similar import get_similar
 
 # Blueprint to import into App.py
@@ -82,3 +83,55 @@ def groupQuizResults():
 
     # Return the response
     return response, 200
+
+# Route to get explanation for a topic from database.
+@learn_bp.route('/getExplanation', methods=['POST'])
+def get_explanation():
+    # Extract the topic from the request body
+    data = request.json
+    topic = data.get('topic')
+
+    # Double check to make sure topic is inside the request body
+    if not topic:
+        return jsonify({'error': 'Bad Request'}), 400
+
+    # Grab explanation from database
+    query = Explanations.query.filter_by(topic=topic).first()
+
+    # Return response
+    if query:
+        # If in DB, send topic and explanation.
+        return jsonify({'topic': query.topic, 'explanation': query.explanation}), 200
+    else:
+        # If not, send error.
+        return jsonify({'error': 'Not found'}), 404
+    
+# Route to create an explanation
+@learn_bp.route('/postExplanation', methods=['POST'])
+def post_explanation():
+    # Extract data from the request body
+    data = request.json
+    topic_id = data.get('topic_id')
+    topic = data.get('topic')
+
+    # Double check to make sure topic and explanation are inside the request body
+    if not topic_id or not topic:
+        return jsonify({'error': 'Both topic and explanation are required'}), 400
+
+    # Check if the topic already exists
+    duplicate = Explanations.query.filter_by(topic=topic_id).first()
+    if duplicate:
+        return jsonify({'error': 'Duplicate Explanation'}), 400
+    
+    # Generate explanation using LLM
+    response, date = run_chat('123', '456', f'Give me a detailed explanation of {topic}.', [], {})
+
+    # Prepare ORM object for DB insertion
+    explanation = Explanations(topic=topic_id, explanation=response)
+
+    # Commit explanation to DB
+    db.session.add(explanation)
+    db.session.commit()
+
+    # Return response.
+    return jsonify({'message': 'Explanation Created'}), 201
