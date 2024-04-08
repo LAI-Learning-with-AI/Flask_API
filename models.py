@@ -65,3 +65,11 @@ class Message(db.Model):
     message = db.Column(db.String)
 
     chat = db.relationship("Chat", backref="messages")
+
+# DB Table Schema for Learning Mode Explanations
+class Explanations(db.Model):
+    __tablename__ = 'explanations'
+
+    topic = db.Column(db.String, primary_key=True)
+    explanation = db.Column(db.String)
+    created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
