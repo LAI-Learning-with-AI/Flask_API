@@ -133,21 +133,21 @@ def gradequiz():
     '''Takes info on quiz MC questions correct & FRQs, grades FRQs, computes a final quiz grade, and stores relevant grade info
     in the database. Expects input JSON body of the following format:
     {
-        "userID": 1234,
-        "quizID": 5678,
+        "userId": 1234,
+        "quizId": 5678,
         "questions": [
             {
-                "questionID": 4000,
+                "id": 4000,
                 "question": "This is a question asked?",
-                "question_type": "SHORT_ANSWER",
-                "answer": "This is the ground-truth answer.",
+                "type": "SHORT_ANSWER",
+                "answers": "This is the ground-truth answer.",
                 "user_answer": "This is the user's answer.",
             },
             {
-                "questionID": 4001,
+                "id": 4001,
                 "question": "This is another question asked?",
-                "question_type": "MULTIPLE_CHOICE",
-                "answer": "This is the ground-truth answer.",
+                "type": "MULTIPLE_CHOICE",
+                "answers": "This is the ground-truth answer.",
                 "user_answer": "This is the ground-truth answer."}
             }
         ]   
@@ -156,15 +156,13 @@ def gradequiz():
 
     # extract data from the request body
     data = request.json
-    user_id = data.get('userID')
-    quiz_id = data.get('quizID')
-    num_mc = data.get('numMC')
-    num_mc_correct = data.get('numMCCorrect')
+    user_id = data.get('userId')
+    quiz_id = data.get('quizId')
     questions = data.get('questions')
 
     question_ids = []
     for question in questions:
-        question_ids.append(question['questionID'])
+        question_ids.append(question['id'])
 
     # grade quiz
     final_score, question_scores = grade_quiz(questions)
