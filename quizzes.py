@@ -158,6 +158,8 @@ def gradequiz():
     data = request.json
     user_id = data.get('userId')
     quiz_id = data.get('quizId')
+    num_mc = data.get('numMC')
+    num_mc_correct = data.get('numMCCorrect')
     questions = data.get('questions')
 
     question_ids = []
@@ -171,7 +173,7 @@ def gradequiz():
     _store_scores_in_db(user_id, quiz_id, final_score, question_ids, question_scores)
 
     # return response
-    return jsonify({'quiz_id': quiz_id}), 200
+    return jsonify({'quizId': quiz_id}), 200
 
 def _store_scores_in_db(user_id, quiz_id, final_grade, question_ids, question_scores):
     '''Stores quiz scores in the database.'''
