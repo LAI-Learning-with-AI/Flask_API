@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from .main_agent.main import run_chat
 from .models import db, Quiz, User, Question, Explanations
 from .main_agent.get_similar import get_similar
+from collections import defaultdict
 
 # Blueprint to import into App.py
 learn_bp = Blueprint('learn', __name__)
@@ -135,3 +136,55 @@ def post_explanation():
 
     # Return response.
     return jsonify({'topic': topic_id, 'explanation': response}), 201
+
+@learn_bp.route('/time_analysis', methods=['POST'])
+def time_analysis():
+    # extract data from the request body
+    data = request.json
+    user_id = data.get('userId')
+
+    # Query the user's account creation date
+    user = User.query.filter_by(id=user_id).first()
+    if user is None:
+        return jsonify({'error': 'User not found'}), 404
+    
+    initial_date = user.created_at.strftime('%Y-%m-%d')
+
+    # Query the quizzes and their associated questions for the specified user_id
+    quizzes = Quiz.query.filter_by(user_id=user_id).join(Question).all()
+
+    # Create a dictionary to store aggregated data for each topic
+    topic_scores = defaultdict(lambda: {'dates': [initial_date], 'average_scores': [0]})
+
+    # Iterate over quizzes and questions to aggregate data
+    for quiz in quizzes:
+        for question in quiz.questions:
+            # Split topics string into a list
+            topics = question.topics.split(',')
+            for topic in topics:
+                # Skip null values for score
+                if question.score is not None:
+                    # Append quiz date and score to the topic's data
+                    topic_scores[topic]['dates'].append(quiz.created_at.strftime('%Y-%m-%d'))
+                    topic_scores[topic]['average_scores'].append(float(question.score))
+
+    # Calculate average score for each topic over time
+    for topic, data in topic_scores.items():
+        # Sort dates in ascending order
+        sorted_dates = sorted(set(data['dates']))
+        # Calculate average score for each sorted date
+        average_scores = []
+        for date in sorted_dates:
+            scores_for_date = [score for i, score in enumerate(data['average_scores']) if data['dates'][i] == date]
+            # Skip null values when calculating average score
+            scores_for_date = [score for score in scores_for_date if score is not None]
+            if scores_for_date:  # Check if the list is not empty
+                average_score_for_date = sum(scores_for_date) / len(scores_for_date)
+                average_scores.append(round(average_score_for_date, 2))
+            else:
+                average_scores.append(None)  # Set score to 0 for dates with no scores
+        # Update topic_scores with the sorted dates and calculated average scores
+        topic_scores[topic]['dates'] = sorted_dates
+        topic_scores[topic]['average_scores'] = average_scores
+
+    return jsonify(topic_scores)
