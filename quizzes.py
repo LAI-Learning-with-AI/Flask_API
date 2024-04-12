@@ -128,7 +128,7 @@ def generatequiz():
     # Return the response
     return jsonify({'quiz_id': quiz_id}), 201
 
-@quizzes_bp.route('/gradequiz', methods=['GET'])
+@quizzes_bp.route('/gradequiz', methods=['POST'])
 def gradequiz():
     '''Takes info on quiz MC questions correct & FRQs, grades FRQs, computes a final quiz grade, and stores relevant grade info
     in the database. Expects input JSON body of the following format:
@@ -183,7 +183,7 @@ def _store_scores_in_db(user_id, quiz_id, final_grade, question_ids, question_sc
     quiz.grade = final_grade 
 
     # set question scores
-    for question_id, score in question_scores.items():
+    for question_id, score in zip(question_ids, question_scores):
         question = Question.query.get(question_id)
         question.score = score
 
