@@ -148,7 +148,7 @@ def time_analysis():
     if user is None:
         return jsonify({'error': 'User not found'}), 404
     
-    initial_date = user.created_at.strftime('%Y-%m-%d')
+    initial_date = user.created_at.strftime('%Y-%m-%d %H:%M:%S')
 
     # Query the quizzes and their associated questions for the specified user_id
     quizzes = Quiz.query.filter_by(user_id=user_id).join(Question).all()
@@ -165,7 +165,7 @@ def time_analysis():
                 # Skip null values for score
                 if question.score is not None:
                     # Append quiz date and score to the topic's data
-                    topic_scores[topic]['dates'].append(quiz.created_at.strftime('%Y-%m-%d'))
+                    topic_scores[topic]['dates'].append(quiz.created_at.strftime('%Y-%m-%d %H:%M:%S'))
                     topic_scores[topic]['average_scores'].append(float(question.score))
 
     # Calculate average score for each topic over time
