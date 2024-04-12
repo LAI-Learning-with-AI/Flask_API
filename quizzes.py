@@ -158,8 +158,6 @@ def gradequiz():
     data = request.json
     user_id = data.get('userId')
     quiz_id = data.get('quizId')
-    num_mc = data.get('numMC')
-    num_mc_correct = data.get('numMCCorrect')
     questions = data.get('questions')
 
     question_ids = []
@@ -167,25 +165,26 @@ def gradequiz():
         question_ids.append(question['id'])
 
     # grade quiz
-    final_score, question_scores = grade_quiz(questions)
+    final_score, question_scores, code_errors = grade_quiz(questions)
 
     # store scores in db
-    _store_scores_in_db(user_id, quiz_id, final_score, question_ids, question_scores)
+    _store_scores_in_db(user_id, quiz_id, final_score, question_ids, question_scores, code_errors)
 
     # return response
     return jsonify({'quizId': quiz_id}), 200
 
-def _store_scores_in_db(user_id, quiz_id, final_grade, question_ids, question_scores):
+def _store_scores_in_db(user_id, quiz_id, final_grade, question_ids, question_scores, code_errors):
     '''Stores quiz scores in the database.'''
 
     # set final grade
     quiz = Quiz.query.get(quiz_id)
     quiz.grade = final_grade 
 
-    # set question scores
-    for question_id, score in zip(question_ids, question_scores):
+    # set question scores and (if applicable)
+    for question_id, score, errors in zip(question_ids, question_scores, code_errors):
         question = Question.query.get(question_id)
         question.score = score
+        question.warnings = errors
 
     # commit to db
     db.session.commit()
