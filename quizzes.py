@@ -163,8 +163,13 @@ def gradequiz():
     questions = data.get('questions')
 
     question_ids = []
+    question_answers = []
     for question in questions:
         question_ids.append(question['id'])
+        question_answers.append(question['user_answer'])
+
+    # store answers in db
+    _store_answers_in_db(question_ids, question_answers)
 
     # grade quiz
     final_score, question_scores = grade_quiz(questions)
@@ -174,6 +179,15 @@ def gradequiz():
 
     # return response
     return jsonify({'quizId': quiz_id}), 200
+
+def _store_answers_in_db(question_ids, question_answers):
+    # set question answers
+    for question_id, answer in zip(question_ids, question_answers):
+        question = Question.query.get(question_id)
+        question.user_answer = answer
+
+    # commit to db
+    db.session.commit()
 
 def _store_scores_in_db(user_id, quiz_id, final_grade, question_ids, question_scores):
     '''Stores quiz scores in the database.'''
