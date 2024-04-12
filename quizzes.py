@@ -194,7 +194,7 @@ def _store_scores_in_db(user_id, quiz_id, final_grade, question_ids, question_sc
 
     # set final grade
     quiz = Quiz.query.get(quiz_id)
-    quiz.grade = final_grade 
+    quiz.score = final_grade
 
     # set question scores
     for question_id, score in zip(question_ids, question_scores):
