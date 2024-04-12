@@ -39,6 +39,7 @@ class Question(db.Model):
     choices = db.Column(db.String)
     answers = db.Column(db.String)
     user_answer = db.Column(db.String)
+    warnings = db.Column(db.String)
     score = db.Column(db.Numeric)
     
     quiz = db.relationship("Quiz", backref="questions")
