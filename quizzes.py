@@ -53,7 +53,9 @@ def quiz():
     
     responseBody = {
         "questions" : formatted,
-        "date": quiz.created_at.isoformat()
+        "date": quiz.created_at.isoformat(),
+        "name": quiz.name,
+        "id": quiz.id
     }
 
     # Return the response
