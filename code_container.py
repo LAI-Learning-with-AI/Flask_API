@@ -10,22 +10,6 @@ app = Flask(__name__)
 client = docker.from_env()
 CORS(app)
 
-def _create_docker_image(image_name, requirements_txt=None):
-    """Takes a name and an optional path to a requirements.txt file. Creates and returns a docker image."""
-
-    cmd = ["docker", "build", "-t", image_name]
-
-    # handle requirements.txt
-    if requirements_txt:
-        cmd.extend(["-f", "-", "."])
-        with open(requirements_txt, "r") as file:
-            requirements = file.read()
-            cmd.append(f"COPY requirements.txt ./")
-            cmd.append(f"RUN pip install -r requirements.txt <<< {requirements}")
-    else:
-        cmd.append(".")
-    subprocess.run(cmd, check=True)
-
 @app.route('/runcode', methods=['POST'])
 def run_code():
     '''Takes JSON input of form: {"code": "code here"}. Runs the code in a Docker container and
