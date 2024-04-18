@@ -55,6 +55,7 @@ def quiz():
         "questions" : formatted,
         "date": quiz.created_at.isoformat(),
         "name": quiz.name,
+        "score": quiz.score,
         "id": quiz.id
     }
 
