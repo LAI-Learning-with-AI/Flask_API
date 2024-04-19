@@ -26,3 +26,18 @@ def create_user():
     
     # Return response
     return jsonify({'message': 'User created successfully'}), 201
+
+# Route to check if user exists
+@users_bp.route('/checkUser', methods=['POST'])
+def check_user():
+    # Extract data from the request body
+    data = request.get_json()
+    userId = data.get('userId')
+
+    # check if user exists
+    exists = False
+    user = User.query.filter_by(id=userId).first()
+    if user is not None:
+        exists = True
+    
+    return {'exists': exists}, 200
